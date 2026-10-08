@@ -2,19 +2,23 @@
 # ============================================================
 #  Prompts Site —— 服务器侧安装脚本（Debian 13 / root 执行）
 #
-#  由本地 deploy.ps1 上传到 /tmp 后调用，也可以手工执行：
-#     scp prompts-server root@149.62.44.144:/tmp/
-#     scp deploy/prompts.service root@149.62.44.144:/tmp/
-#     scp deploy/install.sh root@149.62.44.144:/tmp/
-#     ssh root@149.62.44.144 'bash /tmp/install.sh'
+#  用法（在仓库里直接跑，任意工作目录都行）：
+#     bash deploy/install.sh
+#     bash deploy/install.sh <二进制路径> <systemd 单元路径>     # 手工指定
+#     SITE_PORT=8090 bash deploy/install.sh                     # 换端口
 #
 #  本脚本只做四件事：建用户、放二进制、装 systemd 单元、起服务。
 #  不碰 x-ui、不碰 xray、不碰 nginx 配置，不影响 8443 代理。
+#  幂等：重复执行等于升级，数据库在 /opt/prompts/data/ 不受影响。
 # ============================================================
 set -euo pipefail
 
-BIN_SRC="${1:-/tmp/prompts-server}"
-UNIT_SRC="${2:-/tmp/prompts.service}"
+# 以脚本自身位置为基准，避免「必须在仓库根目录执行」这个坑
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(dirname "$SCRIPT_DIR")"
+
+BIN_SRC="${1:-$REPO_ROOT/dist/prompts-server-linux-amd64}"
+UNIT_SRC="${2:-$SCRIPT_DIR/prompts.service}"
 SITE_PORT="${SITE_PORT:-8080}"
 
 APP_DIR=/opt/prompts
@@ -27,7 +31,7 @@ log() { printf '\033[35m[prompts]\033[0m %s\n' "$*"; }
 die() { printf '\033[31m[错误]\033[0m %s\n' "$*" >&2; exit 1; }
 
 [ "$(id -u)" -eq 0 ] || die "请用 root 执行"
-[ -f "$BIN_SRC" ] || die "找不到二进制：$BIN_SRC"
+[ -f "$BIN_SRC" ] || die "找不到二进制：$BIN_SRC（改过代码请先在本地重新交叉编译并推送）"
 [ -f "$UNIT_SRC" ] || die "找不到 systemd 单元：$UNIT_SRC"
 
 # ---------- 1. 专用系统用户（无登录 shell、无家目录） ----------
