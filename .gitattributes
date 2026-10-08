@@ -1,0 +1,13 @@
+# 统一换行符：仓库里一律 LF，避免 Shell 脚本被检出成 CRLF
+# 后在 Linux 上因 "#!/usr/bin/env bash\r" 无法执行。
+* text=auto eol=lf
+
+# Windows 脚本保留 CRLF，兼容老版本 PowerShell
+*.ps1 text eol=crlf
+
+# 预编译发布件是二进制，禁止任何换行符转换
+dist/* binary
+*.png binary
+
+# 前端构建产物不做 diff
+web/assets/* linguist-generated=true

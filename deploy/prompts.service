@@ -1,0 +1,48 @@
+[Unit]
+Description=Prompts Site (AI 生图提示词收藏)
+Documentation=https://prompts.kanbekotori.top
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=prompts
+Group=prompts
+WorkingDirectory=/opt/prompts
+ExecStart=/usr/local/bin/prompts-server serve -addr 127.0.0.1:8080 -db /opt/prompts/data/prompts.db
+
+# 只吃 1 个核，给 Xray / nginx 留出余量
+Environment=GOMAXPROCS=1
+Environment=GOMEMLIMIT=220MiB
+
+Restart=always
+RestartSec=5
+TimeoutStopSec=15
+
+# 内存保险丝：超限自杀重启，避免拖累 Xray 导致 VPN 断线
+MemoryHigh=220M
+MemoryMax=300M
+# 内存吃紧时优先杀本站，而不是 Xray
+OOMScoreAdjust=500
+
+# 沙箱：只允许写 /opt/prompts/data
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+RestrictNamespaces=true
+LockPersonality=true
+ReadWritePaths=/opt/prompts/data
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=prompts
+
+[Install]
+WantedBy=multi-user.target

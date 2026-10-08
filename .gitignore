@@ -1,0 +1,28 @@
+# ============================================================
+#  交接文档与原始数据不入库
+#  HANDOFF 里有服务器 IP、面板默认凭据、AccessKey 泄露记录；
+#  xlsx 是全部提示词原始数据。本仓库是公开的，两者都不外发。
+# ============================================================
+PROMPTS-SITE-HANDOFF.md
+*.xlsx
+
+# 本地工具链与缓存（便携 Go、npm 缓存等，约 500 MB）
+.tools/
+
+# 依赖
+node_modules/
+frontend/node_modules/
+
+# 本地数据库（含管理员密码哈希与个人数据）
+*.db
+*.db-wal
+*.db-shm
+
+# 本地编译产物：不入库，只保留给服务器用的发布件 dist/
+/prompts-server
+/prompts-server.exe
+
+# 系统垃圾
+Thumbs.db
+Desktop.ini
+.DS_Store
